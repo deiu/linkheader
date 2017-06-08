@@ -4,6 +4,7 @@ Golang tool to parse and set Link headers
 [![Build Status](https://api.travis-ci.org/deiu/linkparser.svg?branch=master)](https://travis-ci.org/deiu/linkparser)
 [![Coverage Status](https://coveralls.io/repos/github/deiu/linkparser/badge.svg?branch=master)](https://coveralls.io/github/deiu/linkparser?branch=master)
 [![GoDoc](https://godoc.org/github.com/deiu/linkheader?status.svg)](https://godoc.org/github.com/deiu/linkheader)
+[![GoReport](https://goreportcard.com/badge/github.com/deiu/linkheader)](https://goreportcard.com/report/github.com/deiu/linkheader)
 
 ## Install
 
