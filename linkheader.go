@@ -48,6 +48,7 @@ func debrack(s string) string {
 	return s[:len(s)-1]
 }
 
+// ParseHeader takes a the value of a Link header (e.g. usually using req.Header.Get("Link")) and returns a map where link values are keyed based on `rel` values.
 func ParseHeader(header string) map[string]string {
 	links := map[string]string{}
 	if len(header) == 0 {
@@ -71,11 +72,12 @@ func ParseHeader(header string) map[string]string {
 	return links
 }
 
-func AddLink(header, link, rel string) string {
+// AddLink returns a Link header with multiple values by adding new links to an existing Link header (which can also be empty). It only supports two parameters, the <link> and the rel="" value.
+func AddLink(oldHeader, link, rel string) string {
 	if len(link) == 0 || len(rel) == 0 {
-		return header
+		return oldHeader
 	}
-	links := ParseHeader(header)
+	links := ParseHeader(oldHeader)
 	links[rel] = link
 	newHeader := ""
 	for k, v := range links {
