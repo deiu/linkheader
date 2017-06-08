@@ -13,6 +13,8 @@ Golang tool to parse and set Link headers
 
 ### Getting values from a Link header
 
+The `ParseHeader()` function returns a map where link values are keyed based on `rel` values.
+
 ```golang
 // the header value usually comes from an http.Request object, using
 // req.Header.Get("Link")
