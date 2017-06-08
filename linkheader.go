@@ -49,8 +49,8 @@ func debrack(s string) string {
 }
 
 // ParseHeader takes a the value of a Link header (e.g. usually using req.Header.Get("Link")) and returns a map where link values are keyed based on `rel` values.
-func ParseHeader(header string) map[string]string {
-	links := map[string]string{}
+func ParseHeader(header string) map[string]map[string]string {
+	links := map[string]map[string]string{}
 	if len(header) == 0 {
 		return links
 	}
@@ -58,13 +58,32 @@ func ParseHeader(header string) map[string]string {
 	for i := range matches {
 		match := matches[i]
 		parts := strings.Split(match, ">")
-		if len(parts) == 2 {
-			href := debrack(parts[0])
-			rels := strings.Split(paramexp.FindString(parts[1]), "=")
-			if len(rels) > 1 {
-				rel := unquote(rels[1])
-				if len(rel) > 0 {
-					links[rel] = href
+		href := ""
+		if len(parts) >= 2 {
+			href = debrack(parts[0])
+			params := paramexp.FindAllString(parts[1], -1)
+			// log.Printf("Params: %v\n", params)
+			values := map[string]string{}
+			for p := range params {
+				param := strings.TrimSpace(params[p])
+				extras := strings.Split(param, "=")
+				if len(extras) > 1 {
+					typ := extras[0]
+					val := unquote(extras[1])
+					if len(val) > 0 {
+						values[typ] = val
+					}
+				}
+			}
+			// reorder and bind to the rel value
+			if len(values) > 0 {
+				if len(values["rel"]) > 0 {
+					rel := values["rel"]
+					links[rel] = map[string]string{}
+					links[rel]["href"] = href
+					for k, v := range values {
+						links[rel][k] = v
+					}
 				}
 			}
 		}
@@ -73,18 +92,28 @@ func ParseHeader(header string) map[string]string {
 }
 
 // AddLink returns a Link header with multiple values by adding new links to an existing Link header (which can also be empty). It only supports two parameters, the <link> and the rel="" value.
-func AddLink(oldHeader, link, rel string) string {
-	if len(link) == 0 || len(rel) == 0 {
+func AddLink(oldHeader, link string, params map[string]string) string {
+	if len(link) == 0 || len(params) == 0 {
+		return oldHeader
+	}
+	// find rel value
+	rel := params["rel"]
+	if len(rel) == 0 {
 		return oldHeader
 	}
 	links := ParseHeader(oldHeader)
-	links[rel] = link
+	links[rel] = params
+	links[rel]["href"] = link
 	newHeader := ""
-	for k, v := range links {
+	for lk, lv := range links {
 		if len(newHeader) > 0 {
 			newHeader += ", "
 		}
-		newHeader += `<` + v + `>; rel="` + k + `"`
+		newHeader += `<` + links[lk]["href"] + `>`
+		delete(lv, "href")
+		for pk, pv := range lv {
+			newHeader += `; ` + pk + `="` + pv + `"`
+		}
 	}
 	return newHeader
 }

@@ -18,12 +18,13 @@ The `ParseHeader()` function returns a map where link values are keyed based on 
 ```golang
 // the header value usually comes from an http.Request object, using
 // req.Header.Get("Link")
-header := `<http://example.org>; rel="foo", <http://test.com>; rel="bar"`
+header := `<http://example.org>; rel="foo" title="hi", <http://test.com>; rel="bar"`
 
 links = ParseHeader(header)
 
-println(links["foo"]) // -> http://example.org
-println(links["bar"]) // -> http://test.com
+println(links["foo"]["href"]) // -> http://example.org
+println(links["foo"]["title"]) // -> hi
+println(links["bar"]["href"]) // -> http://test.com
 ```
 
 ### Setting values to a Link header
@@ -36,15 +37,18 @@ Golang's normal behavior when setting Link headers is a bit weird. For instance,
 oldHeader := req.Header.Get("Link")
 println(oldHeader) // -> ""
 
-newHeader := AddLink(oldHeader, "http://example.org", "foo")
+// we need to build our list of parameters as per https://tools.ietf.org/html/rfc2068#section-19.6.2.4
+params := map[string]string{"rel": "foo", "title": "bar"}
+newHeader := AddLink(oldHeader, "http://example.org", params)
 req.Header.Set("Link", newHeader)
 
 oldHeader = req.Header.Get("Link")
-println(oldHeader) // -> <http://example.org>; rel="foo"
+println(oldHeader) // -> <http://example.org>; rel="foo"; title="bar"
 
-newHeader = AddLink(oldHeader, "http://test.com", "bar")
+params = map[string]string{"rel": "baz"}
+newHeader = AddLink(oldHeader, "http://test.com", params)
 req.Header.Set("Link", newHeader)
 
 println(req.Header.Get("Link"))
-// -> <http://example.org>; rel="foo", <http://test.com>; rel="bar"
+// -> <http://example.org>; rel="foo"; title="bar", <http://test.com>; rel="baz"
 ```
