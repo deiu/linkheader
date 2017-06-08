@@ -40,7 +40,7 @@ func debrack(s string) string {
 	if len(s) == 1 {
 		return s[1:]
 	}
-	s = s[1:len(s)]
+	s = s[1:]
 
 	if s[len(s)-1] != '>' {
 		return s
